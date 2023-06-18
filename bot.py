@@ -1,9 +1,9 @@
 import logging
-import os
 
 import discord
 from discord.ext import commands
 
+import config
 from cogs.utils import files
 
 description = """
@@ -20,7 +20,7 @@ class Bot(commands.Bot):
         allowed_mentions = discord.AllowedMentions.all()
         intents = discord.Intents.all()
         super().__init__(
-            command_prefix=os.getenv('prefix'),
+            command_prefix=config.prefix,
             allowed_mentions=allowed_mentions,
             intents=intents,
             enable_debug_events=True,
@@ -48,5 +48,4 @@ class Bot(commands.Bot):
         log.info(f'Ready: {self.user} (ID: {self.user.id})')
 
     async def start(self) -> None:
-        token = os.getenv('token')
-        await super().start(token, reconnect=True)
+        await super().start(config.token, reconnect=True)
