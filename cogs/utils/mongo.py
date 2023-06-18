@@ -1,8 +1,10 @@
-import os
 from typing import Optional
+
 import motor.motor_asyncio as motor
 
-client = motor.AsyncIOMotorClient(os.getenv('client_uri'))
+import config
+
+client = motor.AsyncIOMotorClient(config.client_uri)
 db = client['tools-by-bitacora']
 
 
