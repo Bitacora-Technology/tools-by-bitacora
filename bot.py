@@ -1,9 +1,10 @@
-from discord.ext import commands
-import discord
 import logging
+import os
+
+import discord
+from discord.ext import commands
 
 from cogs.utils import files
-import config
 
 description = """
 This is the template used by Bitacora.gg to develop Discord bots.
@@ -19,7 +20,7 @@ class Bot(commands.Bot):
         allowed_mentions = discord.AllowedMentions.all()
         intents = discord.Intents.all()
         super().__init__(
-            command_prefix=config.prefix,
+            command_prefix=os.getenv('prefix'),
             allowed_mentions=allowed_mentions,
             intents=intents,
             enable_debug_events=True,
@@ -47,8 +48,5 @@ class Bot(commands.Bot):
         log.info(f'Ready: {self.user} (ID: {self.user.id})')
 
     async def start(self) -> None:
-        await super().start(config.token, reconnect=True)
-
-    @property
-    def config(self) -> config:
-        return __import__('config')
+        token = os.getenv('token')
+        await super().start(token, reconnect=True)
