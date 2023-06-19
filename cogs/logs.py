@@ -152,6 +152,10 @@ class Logs(commands.GroupCog, group_name='logs'):
     ) -> None:
         pass
 
+    @commands.Cog.listener()
+    async def on_thread_create(self, thread: discord.Thread) -> None:
+        pass
+
 
 async def setup(bot: Bot) -> None:
     await bot.add_cog(Logs(bot))
