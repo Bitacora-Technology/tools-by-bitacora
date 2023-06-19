@@ -267,8 +267,21 @@ class Logs(commands.GroupCog, group_name='logs'):
         )
         await channel.send(embed=embed)
 
+    def deleted_embed(
+        self, content: str, author: str, channel_id: int
+    ) -> discord.Embed:
+        title = 'A message has been deleted'
+        color = discord.Color.brand_red()
+        embed = discord.Embed(title=title, color=color)
+
+        embed.add_field(name='Content', value=content, inline=False)
+        embed.add_field(name='Author', value=author, inline=False)
+        embed.add_field(name='Channel', value=f'<#{channel_id}>', inline=False)
+
+        return embed
+
     @commands.Cog.listener()
-    async def on_raw_message_deleted(
+    async def on_raw_message_delete(
         self, payload: discord.RawMessageDeleteEvent
     ) -> None:
         guild_id = payload.guild_id
@@ -276,6 +289,18 @@ class Logs(commands.GroupCog, group_name='logs'):
 
         if not channel_id:
             return
+
+        try:
+            content = payload.cached_message.content
+        except Exception:
+            content = '`Message content not cached`'
+
+        author = payload.cached_message.author
+        channel = await self.find_channel(guild_id, channel_id)
+        embed = self.deleted_embed(
+            content, author.mention, payload.channel_id
+        )
+        await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_thread_create(self, thread: discord.Thread) -> None:
