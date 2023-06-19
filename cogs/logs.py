@@ -11,7 +11,8 @@ logs_options = [
     'Joined',
     'Left',
     'Edited',
-    'Deleted'
+    'Deleted',
+    'Created'
 ]
 
 
@@ -106,6 +107,14 @@ class Logs(commands.GroupCog, group_name='logs'):
     ) -> None:
         """Get notified every time a user deletes a message"""
         await self.update_guild(interaction.guild_id, channel.id, 'deleted')
+        await self.interaction_response(interaction)
+
+    @app_commands.command()
+    async def created(
+        self, interaction: Interaction, channel: TextChannel
+    ) -> None:
+        """Get notified every time a user creates a thread"""
+        await self.update_guild(interaction.guild_id, channel.id, 'created')
         await self.interaction_response(interaction)
 
     @app_commands.command()
