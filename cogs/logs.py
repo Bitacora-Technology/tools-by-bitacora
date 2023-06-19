@@ -1,6 +1,7 @@
 from importlib import reload
 from typing import Optional
 
+import difflib
 import discord
 from discord import ButtonStyle, Interaction, app_commands
 from discord.ext import commands
@@ -211,6 +212,26 @@ class Logs(commands.GroupCog, group_name='logs'):
         embed = self.left_embed(payload.user)
         await channel.send(embed=embed)
 
+    async def find_message(
+        self, guild_id: int, channel_id: int, message_id: int
+    ) -> discord.Message:
+        channel = await self.find_channel(guild_id, channel_id)
+        message = await channel.fetch_message(message_id)
+        return message
+
+    def edited_embed(
+        self, before: str, after: str, author: str, url: str
+    ) -> discord.Embed:
+        title = 'A message has been edited'
+        color = discord.Color.yellow()
+        embed = discord.Embed(title=title, color=color)
+
+        embed.add_field(name='Before', value=before, inline=False)
+        embed.add_field(name='After', value=after, inline=False)
+        embed.add_field(name='Author', value=author, inline=False)
+
+        return embed
+
     @commands.Cog.listener()
     async def on_raw_message_edit(
         self, payload: discord.RawMessageUpdateEvent
@@ -220,6 +241,27 @@ class Logs(commands.GroupCog, group_name='logs'):
 
         if not channel_id:
             return
+
+        before_message = payload.cached_message
+        after_message = await self.find_message(
+            guild_id, payload.channel_id, payload.message_id
+        )
+
+        try:
+            before = before_message.content
+        except Exception:
+            before = '`Message content not cached`'
+        after = after_message.content
+
+        if before == after:
+            return
+
+        channel = await self.find_channel(guild_id, channel_id)
+        embed = self.edited_embed(
+            before, after, after_message.author, after_message.jump_url
+        )
+        await channel.send(embed=embed)
+
 
     @commands.Cog.listener()
     async def on_raw_message_deleted(
