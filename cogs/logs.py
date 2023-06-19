@@ -1,7 +1,6 @@
 from importlib import reload
 from typing import Optional
 
-import difflib
 import discord
 from discord import ButtonStyle, Interaction, app_commands
 from discord.ext import commands
