@@ -1,4 +1,5 @@
 from importlib import reload
+from typing import Optional
 
 import discord
 from discord import ButtonStyle, Interaction, app_commands
@@ -130,31 +131,93 @@ class Logs(commands.GroupCog, group_name='logs'):
             embed=embed, view=view, ephemeral=True
         )
 
+    async def get_logs_channel(
+        self, guild_id: int, option: str
+    ) -> Optional[str]:
+        guild = mongo.Guild(guild_id)
+        guild_settings = await guild.check()
+        return guild_settings.get(option, None)
+
+    def member_embed(self, member: discord.Member) -> discord.Embed:
+        title = 'A user has joined the server!'
+        color = discord.Color.brand_green()
+        embed = discord.Embed(title=title, color=color)
+
+        timestamp = int(member.created_at.timestamp())
+        formatted_timestamp = f'<t:{timestamp}:R>'
+
+        embed.add_field(name='Account Name', value=member.name, inline=False)
+        embed.add_field(
+            name='Account Creation', value=formatted_timestamp, inline=False
+        )
+        embed.set_thumbnail(url=member.avatar.url)
+
+        return embed
+
+    async def find_guild(self, guild_id: int) -> discord.Guild:
+        guild = self.bot.get_guild(guild_id)
+        if not guild:
+            guild = await self.bot.fetch_guild(guild_id)
+        return guild
+
+    async def find_channel(
+        self, guild_id: int, channel_id: int
+    ) -> discord.TextChannel:
+        guild = await self.find_guild(guild_id)
+        channel = guild.get_channel(channel_id)
+        if not channel:
+            channel = await guild.fetch_channel(channel_id)
+        return channel
+
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
-        pass
+        guild_id = member.guild.id
+        channel_id = await self.get_logs_channel(guild_id, 'joined')
+
+        if not channel_id:
+            return
+
+        channel = await self.find_channel(guild_id, channel_id)
+        embed = self.member_embed(member)
+        await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_raw_member_remove(
         self, payload: discord.RawMemberRemoveEvent
     ) -> None:
-        pass
+        guild_id = payload.guild_id
+        channel_id = await self.get_logs_channel(guild_id, 'left')
+
+        if not channel_id:
+            return
 
     @commands.Cog.listener()
     async def on_raw_message_edit(
         self, payload: discord.RawMessageUpdateEvent
     ) -> None:
-        pass
+        guild_id = payload.guild_id
+        channel_id = await self.get_logs_channel(guild_id, 'edited')
+
+        if not channel_id:
+            return
 
     @commands.Cog.listener()
     async def on_raw_message_deleted(
         self, payload: discord.RawMessageDeleteEvent
     ) -> None:
-        pass
+        guild_id = payload.guild_id
+        channel_id = await self.get_logs_channel(guild_id, 'deleted')
+
+        if not channel_id:
+            return
 
     @commands.Cog.listener()
     async def on_thread_create(self, thread: discord.Thread) -> None:
-        pass
+        guild_id = thread.guild.id
+        channel_id = await self.get_logs_channel(guild_id, 'created')
+
+        if not channel_id:
+            return
 
 
 async def setup(bot: Bot) -> None:
