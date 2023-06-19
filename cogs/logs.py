@@ -138,6 +138,21 @@ class Logs(commands.GroupCog, group_name='logs'):
         guild_settings = await guild.check()
         return guild_settings.get(option, None)
 
+    async def find_guild(self, guild_id: int) -> discord.Guild:
+        guild = self.bot.get_guild(guild_id)
+        if not guild:
+            guild = await self.bot.fetch_guild(guild_id)
+        return guild
+
+    async def find_channel(
+        self, guild_id: int, channel_id: int
+    ) -> discord.TextChannel:
+        guild = await self.find_guild(guild_id)
+        channel = guild.get_channel(channel_id)
+        if not channel:
+            channel = await guild.fetch_channel(channel_id)
+        return channel
+
     def member_embed(self, member: discord.Member) -> discord.Embed:
         title = 'A user has joined the server!'
         color = discord.Color.brand_green()
@@ -153,21 +168,6 @@ class Logs(commands.GroupCog, group_name='logs'):
         embed.set_thumbnail(url=member.avatar.url)
 
         return embed
-
-    async def find_guild(self, guild_id: int) -> discord.Guild:
-        guild = self.bot.get_guild(guild_id)
-        if not guild:
-            guild = await self.bot.fetch_guild(guild_id)
-        return guild
-
-    async def find_channel(
-        self, guild_id: int, channel_id: int
-    ) -> discord.TextChannel:
-        guild = await self.find_guild(guild_id)
-        channel = guild.get_channel(channel_id)
-        if not channel:
-            channel = await guild.fetch_channel(channel_id)
-        return channel
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
