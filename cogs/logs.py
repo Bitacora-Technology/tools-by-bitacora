@@ -228,6 +228,11 @@ class Logs(commands.GroupCog, group_name='logs'):
         embed.add_field(name='Before', value=before, inline=False)
         embed.add_field(name='After', value=after, inline=False)
         embed.add_field(name='Author', value=author, inline=False)
+        embed.add_field(
+            name='Jump to message',
+            value=f'[[Click here]]({url})',
+            inline=False
+        )
 
         return embed
 
@@ -255,12 +260,12 @@ class Logs(commands.GroupCog, group_name='logs'):
         if before == after:
             return
 
+        author = after_message.author
         channel = await self.find_channel(guild_id, channel_id)
         embed = self.edited_embed(
-            before, after, after_message.author, after_message.jump_url
+            before, after, author.mention, after_message.jump_url
         )
         await channel.send(embed=embed)
-
 
     @commands.Cog.listener()
     async def on_raw_message_deleted(
