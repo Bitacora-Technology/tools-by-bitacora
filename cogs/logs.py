@@ -13,8 +13,7 @@ logs_options = [
     'Joined',
     'Left',
     'Edited',
-    'Deleted',
-    'Created'
+    'Deleted'
 ]
 
 
@@ -110,26 +109,6 @@ class Logs(commands.GroupCog, group_name='logs'):
         """Get notified every time a user deletes a message"""
         await self.update_guild(interaction.guild_id, channel.id, 'deleted')
         await self.interaction_response(interaction)
-
-    @app_commands.command()
-    async def created(
-        self, interaction: Interaction, channel: discord.TextChannel
-    ) -> None:
-        """Get notified every time a user creates a thread"""
-        await self.update_guild(interaction.guild_id, channel.id, 'created')
-        await self.interaction_response(interaction)
-
-    @app_commands.command()
-    async def settings(self, interaction: Interaction) -> None:
-        """Check and update logs settings"""
-        guild = mongo.Guild(interaction.guild_id)
-        guild_settings = await guild.check()
-
-        embed = logs_embed(logs_options, guild_settings)
-        view = ResetLogsView(logs_options, guild_settings)
-        await interaction.response.send_message(
-            embed=embed, view=view, ephemeral=True
-        )
 
     async def get_logs_channel(
         self, guild_id: int, option: str
@@ -301,14 +280,6 @@ class Logs(commands.GroupCog, group_name='logs'):
             content, author.mention, payload.channel_id
         )
         await channel.send(embed=embed)
-
-    @commands.Cog.listener()
-    async def on_thread_create(self, thread: discord.Thread) -> None:
-        guild_id = thread.guild.id
-        channel_id = await self.get_logs_channel(guild_id, 'created')
-
-        if not channel_id:
-            return
 
 
 async def setup(bot: Bot) -> None:
