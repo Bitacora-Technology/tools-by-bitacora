@@ -153,13 +153,13 @@ class Logs(commands.GroupCog, group_name='logs'):
             channel = await guild.fetch_channel(channel_id)
         return channel
 
-    def member_embed(self, member: discord.Member) -> discord.Embed:
+    def joined_embed(self, member: discord.Member) -> discord.Embed:
         title = 'A user has joined the server!'
         color = discord.Color.brand_green()
         embed = discord.Embed(title=title, color=color)
 
         timestamp = int(member.created_at.timestamp())
-        formatted_timestamp = f'<t:{timestamp}:R>'
+        formatted_timestamp = f'<t:{timestamp}:f>'
 
         embed.add_field(name='Account Name', value=member.name, inline=False)
         embed.add_field(
@@ -178,18 +178,38 @@ class Logs(commands.GroupCog, group_name='logs'):
             return
 
         channel = await self.find_channel(guild_id, channel_id)
-        embed = self.member_embed(member)
+        embed = self.joined_embed(member)
         await channel.send(embed=embed)
+
+    def left_embed(self, member: discord.Member) -> discord.Embed:
+        title = 'A user has left the server'
+        color = discord.Color.brand_red()
+        embed = discord.Embed(title=title, color=color)
+
+        timestamp = int(member.joined_at.timestamp())
+        formatted_timestamp = f'<t:{timestamp}:f>'
+
+        embed.add_field(name='Account Name', value=member.name, inline=False)
+        embed.add_field(
+            name='Joined Server', value=formatted_timestamp, inline=False
+        )
+        embed.set_thumbnail(url=member.avatar.url)
+
+        return embed
 
     @commands.Cog.listener()
     async def on_raw_member_remove(
         self, payload: discord.RawMemberRemoveEvent
     ) -> None:
         guild_id = payload.guild_id
-        channel_id = await self.get_logs_channel(guild_id, 'left')
+        channel_id = await self.get_logs_channel(guild_id, 'joined')
 
         if not channel_id:
             return
+
+        channel = await self.find_channel(guild_id, channel_id)
+        embed = self.left_embed(payload.user)
+        await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_raw_message_edit(
