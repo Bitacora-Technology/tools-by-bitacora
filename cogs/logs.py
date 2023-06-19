@@ -1,6 +1,7 @@
 from importlib import reload
 
-from discord import ButtonStyle, Embed, Interaction, TextChannel, app_commands
+import discord
+from discord import ButtonStyle, Interaction, app_commands
 from discord.ext import commands
 from discord.ui import Button, View
 
@@ -16,11 +17,11 @@ logs_options = [
 ]
 
 
-def logs_embed(options: list[str], settings: dict[str, str]) -> Embed:
+def logs_embed(options: list[str], settings: dict[str, str]) -> discord.Embed:
     title = 'Logs Settings'
     footer =\
         'Click any of the buttons below to reset the selected channel'
-    embed = Embed(title=title)
+    embed = discord.Embed(title=title)
     embed.set_footer(text=footer)
 
     for option in options:
@@ -79,7 +80,7 @@ class Logs(commands.GroupCog, group_name='logs'):
 
     @app_commands.command()
     async def joined(
-        self, interaction: Interaction, channel: TextChannel
+        self, interaction: Interaction, channel: discord.TextChannel
     ) -> None:
         """Get notified every time a user joins the server"""
         await self.update_guild(interaction.guild_id, channel.id, 'joined')
@@ -87,7 +88,7 @@ class Logs(commands.GroupCog, group_name='logs'):
 
     @app_commands.command()
     async def left(
-        self, interaction: Interaction, channel: TextChannel
+        self, interaction: Interaction, channel: discord.TextChannel
     ) -> None:
         """Get notified every time a user leaves the server"""
         await self.update_guild(interaction.guild_id, channel.id, 'left')
@@ -95,7 +96,7 @@ class Logs(commands.GroupCog, group_name='logs'):
 
     @app_commands.command()
     async def edited(
-        self, interaction: Interaction, channel: TextChannel
+        self, interaction: Interaction, channel: discord.TextChannel
     ) -> None:
         """Get notified every time a user edits a message"""
         await self.update_guild(interaction.guild_id, channel.id, 'edited')
@@ -103,7 +104,7 @@ class Logs(commands.GroupCog, group_name='logs'):
 
     @app_commands.command()
     async def deleted(
-        self, interaction: Interaction, channel: TextChannel
+        self, interaction: Interaction, channel: discord.TextChannel
     ) -> None:
         """Get notified every time a user deletes a message"""
         await self.update_guild(interaction.guild_id, channel.id, 'deleted')
@@ -111,7 +112,7 @@ class Logs(commands.GroupCog, group_name='logs'):
 
     @app_commands.command()
     async def created(
-        self, interaction: Interaction, channel: TextChannel
+        self, interaction: Interaction, channel: discord.TextChannel
     ) -> None:
         """Get notified every time a user creates a thread"""
         await self.update_guild(interaction.guild_id, channel.id, 'created')
@@ -128,6 +129,28 @@ class Logs(commands.GroupCog, group_name='logs'):
         await interaction.response.send_message(
             embed=embed, view=view, ephemeral=True
         )
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member) -> None:
+        pass
+
+    @commands.Cog.listener()
+    async def on_raw_member_remove(
+        self, payload: discord.RawMemberRemoveEvent
+    ) -> None:
+        pass
+
+    @commands.Cog.listener()
+    async def on_raw_message_edit(
+        self, payload: discord.RawMessageUpdateEvent
+    ) -> None:
+        pass
+
+    @commands.Cog.listener()
+    async def on_raw_message_deleted(
+        self, payload: discord.RawMessageDeleteEvent
+    ) -> None:
+        pass
 
 
 async def setup(bot: Bot) -> None:
